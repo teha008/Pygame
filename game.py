@@ -1,143 +1,180 @@
 import pygame
 import random
+import time
 
 # 1. 게임 초기화
 pygame.init()
 
 # 2. 게임창 옵션 설정
-size = [400, 900]
-screen = pygame.display.set_mode(size)
+게임화면크기 = [400, 900]
+게임화면 = pygame.display.set_mode(게임화면크기)
 
-title = "조상호 게임 만들기"
-pygame.display.set_caption(title)
+게임제목 = "외계인과 전투"
+pygame.display.set_caption(게임제목)
 
 # 3. 게임 내 필요한 설정
-clock = pygame.time.Clock()
+게임시간 = pygame.time.Clock()
 
 
 class obj:
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.move = 0
+    def __init__(입력값):
+        입력값.x = 0
+        입력값.y = 0
+        입력값.move = 0
 
-    def put_img(self, address):
+    def put_img(입력값, address):
         if address[-3:] == "png":
-            self.img = pygame.image.load(address).convert_alpha()
+            입력값.img = pygame.image.load(address).convert_alpha()
         else:
-            self.img = pygame.image.load(address)
-            self.sx, self.sy = self.img.get_size()
+            입력값.img = pygame.image.load(address)
+            입력값.sx, 입력값.sy = 입력값.img.get_size()
 
-    def change_size(self, sx, sy):
-        self.img = pygame.transform.scale(self.img, (sx, sy))
-        self.sx, self.sy = self.img.get_size()
+    def change_size(입력값, sx, sy):
+        입력값.img = pygame.transform.scale(입력값.img, (sx, sy))
+        입력값.sx, 입력값.sy = 입력값.img.get_size()
 
-    def show(self):
-        screen.blit(self.img, (self.x, self.y))
+    def show(입력값):
+        게임화면.blit(입력값.img, (입력값.x, 입력값.y))
+
+
+def 충돌하면(입력값A, 입렵값b):
+    if (입력값A.x - 입렵값b.sx <= 입렵값b.x) and (입렵값b.x <= 입력값A.x + 입력값A.sx):
+        if (입력값A.y - 입렵값b.sy <= 입렵값b.y) and (입렵값b.y <= 입력값A.y + 입력값A.sy):
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 # 전투기 만들기
-Fighter = obj()
-Fighter.put_img("./image/airplane.png")
-Fighter.change_size(50, 80)
-Fighter.x = round(size[0] / 2 - Fighter.sx / 2)
-Fighter.y = size[1] - Fighter.sy - 15
-Fighter.move = 5
+전투기 = obj()
+전투기.put_img("./image/airplane.png")
+전투기.change_size(70, 120)
+전투기.x = round(게임화면크기[0] / 2 - 전투기.sx / 2)
+전투기.y = 게임화면크기[1] - 전투기.sy - 15
+전투기.move = 5
 #################################################
 
-left_go = False
-right_go = False
-space_go = False
+왼쪽이동 = False
+오른쪽이동 = False
+스페이스바 = False
 
-bullet_list = []
-alien_list = []
+총알목록 = []
+외계인목록 = []
 
-black = (0, 0, 0)
-white = (255, 255, 255)
-k = 0
+검정색 = (0, 0, 0)
+흰색 = (255, 255, 255)
+증가값 = 0
 
 # 4. 메인 이벤트
-STOP = 0
-while STOP == 0:
+멈춤 = 0
+while 멈춤 == 0:
 
     # 4-1. FPS 설정
-    clock.tick(60)
+    게임시간.tick(120)
 
     # 4-2. 각종 입력 감지
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            STOP = 1
+            멈춤 = 1
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                left_go = True
+                왼쪽이동 = True
             elif event.key == pygame.K_RIGHT:
-                right_go = True
+                오른쪽이동 = True
             elif event.key == pygame.K_SPACE:
-                space_go = True
-                k = 0
+                스페이스바 = True
+                증가값 = 0
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
-                left_go = False
+                왼쪽이동 = False
             elif event.key == pygame.K_RIGHT:
-                right_go = False
+                오른쪽이동 = False
             elif event.key == pygame.K_SPACE:
-                space_go = False
+                스페이스바 = False
 
     # 4-3. 입력 시간에 따른 변화
-    if left_go == True:
-        Fighter.x -= Fighter.move
-        if Fighter.x <= 0:
-            Fighter.x = 0
-    elif right_go == True:
-        Fighter.x += Fighter.move
-        if Fighter.x >= size[0] - Fighter.sx:
-            Fighter.x = size[0] - Fighter.sx
+    if 왼쪽이동 == True:
+        전투기.x -= 전투기.move
+        if 전투기.x <= 0:
+            전투기.x = 0
+    elif 오른쪽이동 == True:
+        전투기.x += 전투기.move
+        if 전투기.x >= 게임화면크기[0] - 전투기.sx:
+            전투기.x = 게임화면크기[0] - 전투기.sx
 
-    if space_go == True and k % 6 == 0:
+    if 스페이스바 == True and 증가값 % 6 == 0:
         # 총알 만들기
-        bullet = obj()
-        bullet.put_img("./image/bullet.png")
-        bullet.change_size(5, 15)
-        bullet.x = round(Fighter.x + Fighter.sx / 2 - bullet.sx / 2)
-        bullet.y = Fighter.y - bullet.sy - 10
-        bullet.move = 15
-        bullet_list.append(bullet)
+        총알 = obj()
+        총알.put_img("./image/bullet.png")
+        총알.change_size(10, 30)
+        총알.x = round(전투기.x + 전투기.sx / 2 - 총알.sx / 2)
+        총알.y = 전투기.y - 총알.sy - 10
+        총알.move = 15
+        총알목록.append(총알)
         ###############################################################
-    k += 1
-    delete_list = []
-    for i in range(len(bullet_list)):
-        b = bullet_list[i]
-        b.y -= b.move
-        if b.y <= -b.sy:
-            delete_list.append(i)
-    for d in delete_list:
-        del bullet_list[d]
+
+    증가값 += 1
+    제거목록 = []
+    for i in range(len(총알목록)):
+        총알수 = 총알목록[i]
+        총알수.y -= 총알수.move
+        if 총알수.y <= -총알수.sy:
+            제거목록.append(i)
+    for d in 제거목록:
+        del 총알목록[d]
 
     if random.random() > 0.98:
         # 외계인 만들기
-        alien = obj()
-        alien.put_img("./image/alien.png")
-        alien.change_size(40, 40)
-        alien.x = random.randrange(0, size[0] - alien.sx - round(Fighter.sx / 2))
-        alien.y = 10
-        alien.move = 1
-        alien_list.append(alien)
-    delete_list = []
-    for i in range(len(alien_list)):
-        a = alien_list[i]
-        a.y += a.move
-        if a.y >= size[1]:
-            delete_list.append(i)
-    for d in delete_list:
-        del alien_list[d]
+        외계인 = obj()
+        외계인.put_img("./image/alien.png")
+        외계인.change_size(80, 80)
+        외계인.x = random.randrange(0, 게임화면크기[0] - 외계인.sx - round(전투기.sx / 2))
+        외계인.y = 10
+        외계인.move = 1
+        외계인목록.append(외계인)
         ###############################################################
+
+    제거목록 = []
+    for i in range(len(외계인목록)):
+        외계인수 = 외계인목록[i]
+        외계인수.y += 외계인수.move
+        if 외계인수.y >= 게임화면크기[1]:
+            제거목록.append(i)
+    for d in 제거목록:
+        del 외계인목록[d]
+
+    제거된총알목록 = []
+    제거된외계인목록 = []
+    for i in range(len(총알목록)):
+        for j in range(len(외계인목록)):
+            총알b = 총알목록[i]
+            외계인a = 외계인목록[j]
+            if 충돌하면(총알b, 외계인a) == True:
+                제거된총알목록.append(i)
+                제거된외계인목록.append(j)
+    제거된총알목록 = list(set(제거된총알목록))
+    제거된외계인목록 = list(set(제거된외계인목록))
+
+    for 총알제거 in 제거된총알목록:
+        del 총알목록[총알제거]
+    for 외계인제거 in 제거된외계인목록:
+        del 외계인목록[외계인제거]
+
+    for i in range(len(외계인목록)):
+        외계인한명 = 외계인목록[i]
+        if 충돌하면(외계인한명, 전투기) == True:
+            멈춤 = 1
+            time.sleep(1)
+
     # 4-4. 그리기
-    screen.fill(black)
-    Fighter.show()
-    for b in bullet_list:
-        b.show()
-    for a in alien_list:
-        a.show()
+    게임화면.fill(검정색)
+    전투기.show()
+    for 총알하나 in 총알목록:
+        총알하나.show()
+    for 외계인하나 in 외계인목록:
+        외계인하나.show()
     # 4-5. 업데이트
     pygame.display.flip()
 
