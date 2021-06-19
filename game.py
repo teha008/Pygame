@@ -1,6 +1,7 @@
 import pygame
 import random
 import time
+from datetime import datetime
 
 # 1. 게임 초기화
 pygame.init()
@@ -38,13 +39,20 @@ class obj:
 
 
 def 충돌하면(입력값A, 입렵값b):
+
     if (입력값A.x - 입렵값b.sx <= 입렵값b.x) and (입렵값b.x <= 입력값A.x + 입력값A.sx):
         if (입력값A.y - 입렵값b.sy <= 입렵값b.y) and (입렵값b.y <= 입력값A.y + 입력값A.sy):
+            충돌효과음()
             return True
         else:
             return False
     else:
         return False
+
+
+def 충돌효과음():
+    pygame.mixer.music.load("./sound/crashAlien.mp3")
+    pygame.mixer.music.play(0)
 
 
 # 전투기 만들기
@@ -67,7 +75,26 @@ def 충돌하면(입력값A, 입렵값b):
 흰색 = (255, 255, 255)
 증가값 = 0
 
+게임종료 = 0
+외계인죽인횟수 = 0
+외계인놓친횟수 = 0
+
+# 4-0. 게임 시작 대기 화면
+멈춤 = 0
+while 멈춤 == 0:
+    게임시간.tick(60)
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                멈춤 = 1
+    게임화면.fill(검정색)
+    게임화면글꼴 = pygame.font.Font("C:/Windows/Fonts/GULIM.TTC", 20)
+    시작텍스트 = 게임화면글꼴.render("스페이스바를 누르면 게임 시작", True, (255, 255, 255))
+    게임화면.blit(시작텍스트, (50, round(게임화면크기[1] / 2 - 50)))
+    pygame.display.flip()
+
 # 4. 메인 이벤트
+시작시간 = datetime.now()
 멈춤 = 0
 while 멈춤 == 0:
 
@@ -95,6 +122,9 @@ while 멈춤 == 0:
                 스페이스바 = False
 
     # 4-3. 입력 시간에 따른 변화
+    현재시간 = datetime.now()
+    시간차 = round((현재시간 - 시작시간).total_seconds())
+
     if 왼쪽이동 == True:
         전투기.x -= 전투기.move
         if 전투기.x <= 0:
@@ -117,13 +147,14 @@ while 멈춤 == 0:
 
     증가값 += 1
     제거목록 = []
-    for i in range(len(총알목록)):
-        총알수 = 총알목록[i]
+    for i번 in range(len(총알목록)):
+        총알수 = 총알목록[i번]
         총알수.y -= 총알수.move
         if 총알수.y <= -총알수.sy:
-            제거목록.append(i)
-    for d in 제거목록:
-        del 총알목록[d]
+            제거목록.append(i번)
+    제거목록.reverse()
+    for d번 in 제거목록:
+        del 총알목록[d번]
 
     if random.random() > 0.98:
         # 외계인 만들기
@@ -137,13 +168,15 @@ while 멈춤 == 0:
         ###############################################################
 
     제거목록 = []
-    for i in range(len(외계인목록)):
-        외계인수 = 외계인목록[i]
+    for i번 in range(len(외계인목록)):
+        외계인수 = 외계인목록[i번]
         외계인수.y += 외계인수.move
         if 외계인수.y >= 게임화면크기[1]:
-            제거목록.append(i)
-    for d in 제거목록:
-        del 외계인목록[d]
+            제거목록.append(i번)
+    제거목록.reverse()
+    for d번 in 제거목록:
+        del 외계인목록[d번]
+        외계인놓친횟수 += 1
 
     제거된총알목록 = []
     제거된외계인목록 = []
@@ -157,16 +190,23 @@ while 멈춤 == 0:
     제거된총알목록 = list(set(제거된총알목록))
     제거된외계인목록 = list(set(제거된외계인목록))
 
-    for 총알제거 in 제거된총알목록:
-        del 총알목록[총알제거]
-    for 외계인제거 in 제거된외계인목록:
-        del 외계인목록[외계인제거]
+    제거된총알목록.reverse()
+    제거된외계인목록.reverse()
+
+    try:
+        for 총알제거 in 제거된총알목록:
+            del 총알목록[총알제거]
+        for 외계인제거 in 제거된외계인목록:
+            del 외계인목록[외계인제거]
+            외계인죽인횟수 += 1
+    except:
+        pass
 
     for i in range(len(외계인목록)):
         외계인한명 = 외계인목록[i]
         if 충돌하면(외계인한명, 전투기) == True:
             멈춤 = 1
-            time.sleep(1)
+            게임종료 = 1
 
     # 4-4. 그리기
     게임화면.fill(검정색)
@@ -175,8 +215,28 @@ while 멈춤 == 0:
         총알하나.show()
     for 외계인하나 in 외계인목록:
         외계인하나.show()
+
+    게임화면글꼴 = pygame.font.Font("C:/Windows/Fonts/GULIM.TTC", 20)
+    킬텍스트 = 게임화면글꼴.render(
+        "killed : {} loss : {}".format(외계인죽인횟수, 외계인놓친횟수), True, (255, 255, 0)
+    )
+    게임화면.blit(킬텍스트, (10, 5))
+
+    시간텍스트 = 게임화면글꼴.render("time : {}".format(시간차), True, (255, 255, 255))
+    게임화면.blit(시간텍스트, (게임화면크기[0] - 100, 5))
     # 4-5. 업데이트
     pygame.display.flip()
 
 # 5. 게임 종료
+while 게임종료 == 1:
+    게임시간.tick(60)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            게임종료 = 1
+
+    게임화면글꼴 = pygame.font.Font("C:/Windows/Fonts/GULIM.TTC", 40)
+    종료텍스트 = 게임화면글꼴.render("게임 종료", True, (255, 0, 0))
+    게임화면.blit(종료텍스트, (110, round(게임화면크기[1] / 2 - 50)))
+    pygame.display.flip()
+
 pygame.quit
