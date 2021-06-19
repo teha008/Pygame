@@ -1,5 +1,5 @@
 import pygame
-from pygame.constants import K_RIGHT
+import random
 
 # 1. 게임 초기화
 pygame.init()
@@ -36,15 +36,21 @@ class obj:
         screen.blit(self.img, (self.x, self.y))
 
 
-gameClass = obj()
-gameClass.put_img("./airplane.png")
-gameClass.change_size(50, 80)
-gameClass.x = round(size[0] / 2 - gameClass.sx / 2)
-gameClass.y = size[1] - gameClass.sy - 15
-gameClass.move = 5
+# 전투기 만들기
+Fighter = obj()
+Fighter.put_img("./image/airplane.png")
+Fighter.change_size(50, 80)
+Fighter.x = round(size[0] / 2 - Fighter.sx / 2)
+Fighter.y = size[1] - Fighter.sy - 15
+Fighter.move = 5
+#################################################
 
 left_go = False
 right_go = False
+space_go = False
+
+bullet_list = []
+alien_list = []
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -66,20 +72,74 @@ while STOP == 0:
                 left_go = True
             elif event.key == pygame.K_RIGHT:
                 right_go = True
-        elif event.type = pygame.KEYUP:
-          if event.key == pygame.K_LEFT:
-              left_go = False
-          elif event.key == pygame.K_RIGHT:
-              right_go = False
+            elif event.key == pygame.K_SPACE:
+                space_go = True
+                k = 0
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                left_go = False
+            elif event.key == pygame.K_RIGHT:
+                right_go = False
+            elif event.key == pygame.K_SPACE:
+                space_go = False
 
     # 4-3. 입력 시간에 따른 변화
+    if left_go == True:
+        Fighter.x -= Fighter.move
+        if Fighter.x <= 0:
+            Fighter.x = 0
+    elif right_go == True:
+        Fighter.x += Fighter.move
+        if Fighter.x >= size[0] - Fighter.sx:
+            Fighter.x = size[0] - Fighter.sx
 
+    if space_go == True and k % 6 == 0:
+        # 총알 만들기
+        bullet = obj()
+        bullet.put_img("./image/bullet.png")
+        bullet.change_size(5, 15)
+        bullet.x = round(Fighter.x + Fighter.sx / 2 - bullet.sx / 2)
+        bullet.y = Fighter.y - bullet.sy - 10
+        bullet.move = 15
+        bullet_list.append(bullet)
+        ###############################################################
+    k += 1
+    delete_list = []
+    for i in range(len(bullet_list)):
+        b = bullet_list[i]
+        b.y -= b.move
+        if b.y <= -b.sy:
+            delete_list.append(i)
+    for d in delete_list:
+        del bullet_list[d]
+
+    if random.random() > 0.98:
+        # 외계인 만들기
+        alien = obj()
+        alien.put_img("./image/alien.png")
+        alien.change_size(40, 40)
+        alien.x = random.randrange(0, size[0] - alien.sx - round(Fighter.sx / 2))
+        alien.y = 10
+        alien.move = 1
+        alien_list.append(alien)
+    delete_list = []
+    for i in range(len(alien_list)):
+        a = alien_list[i]
+        a.y += a.move
+        if a.y >= size[1]:
+            delete_list.append(i)
+    for d in delete_list:
+        del alien_list[d]
+        ###############################################################
     # 4-4. 그리기
     screen.fill(black)
-    gameClass.show()
-
+    Fighter.show()
+    for b in bullet_list:
+        b.show()
+    for a in alien_list:
+        a.show()
     # 4-5. 업데이트
     pygame.display.flip()
 
 # 5. 게임 종료
-pygame.quitV
+pygame.quit
