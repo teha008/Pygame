@@ -1,4 +1,5 @@
 import pygame
+from pygame.constants import K_RIGHT
 
 # 1. 게임 초기화
 pygame.init()
@@ -13,21 +14,45 @@ pygame.display.set_caption(title)
 # 3. 게임 내 필요한 설정
 clock = pygame.time.Clock()
 
-airplane = pygame.image.load(
-    "C:/WebProject/PythonProject/Pygame/airplane.png"
-).convert_alpha()
-airplane = pygame.transform.scale(airplane, (50, 80))
-airplane_sx, airplane_sy = airplane.get_size()
-airplane_x = round(size[0] / 2 - airplane_sx / 2)
-airplane_y = size[1] - airplane_sy - 15
+
+class obj:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.move = 0
+
+    def put_img(self, address):
+        if address[-3:] == "png":
+            self.img = pygame.image.load(address).convert_alpha()
+        else:
+            self.img = pygame.image.load(address)
+            self.sx, self.sy = self.img.get_size()
+
+    def change_size(self, sx, sy):
+        self.img = pygame.transform.scale(self.img, (sx, sy))
+        self.sx, self.sy = self.img.get_size()
+
+    def show(self):
+        screen.blit(self.img, (self.x, self.y))
+
+
+gameClass = obj()
+gameClass.put_img("./airplane.png")
+gameClass.change_size(50, 80)
+gameClass.x = round(size[0] / 2 - gameClass.sx / 2)
+gameClass.y = size[1] - gameClass.sy - 15
+gameClass.move = 5
+
+left_go = False
+right_go = False
 
 black = (0, 0, 0)
 white = (255, 255, 255)
 k = 0
 
 # 4. 메인 이벤트
-SB = 0
-while SB == 0:
+STOP = 0
+while STOP == 0:
 
     # 4-1. FPS 설정
     clock.tick(60)
@@ -35,17 +60,26 @@ while SB == 0:
     # 4-2. 각종 입력 감지
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            SB = 1
+            STOP = 1
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                left_go = True
+            elif event.key == pygame.K_RIGHT:
+                right_go = True
+        elif event.type = pygame.KEYUP:
+          if event.key == pygame.K_LEFT:
+              left_go = False
+          elif event.key == pygame.K_RIGHT:
+              right_go = False
 
     # 4-3. 입력 시간에 따른 변화
-    k += 1
 
     # 4-4. 그리기
     screen.fill(black)
-    screen.blit(airplane, (airplane_x, airplane_y))
+    gameClass.show()
 
     # 4-5. 업데이트
     pygame.display.flip()
 
 # 5. 게임 종료
-pygame.quit
+pygame.quitV
